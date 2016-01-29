@@ -6,6 +6,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Titanium.Web.Proxy.EventArguments;
+using Titanium.Web.Proxy.Models;
 
 namespace Unblock163MusicClient
 {
@@ -28,6 +29,15 @@ namespace Unblock163MusicClient
             {
                 Console.WriteLine("Play API: " + e.RequestUrl);
                 e.SetResponseBodyString(ModifyPlayAPI(e.GetResponseBodyAsString()));
+                foreach (HttpHeader header in e.ResponseHeaders)
+                {
+                    Console.WriteLine(header.ToString());
+                    if (header.Name == "Content-Type")
+                    {
+                        header.Value = "audio/mpeg;charset=UTF-8";
+                        Console.WriteLine(header.ToString());
+                    }
+                }
             }
             
             //if (e.RequestUrl.Contains("/eapi/v3/song/detail/") || e.RequestUrl.Contains("/eapi/v1/album/") || e.RequestUrl.Contains("/eapi/v3/playlist/detail"))
@@ -58,6 +68,10 @@ namespace Unblock163MusicClient
         static String ModifySearchAPI(String content)
         {
             JObject root = JObject.Parse(content);
+            if (root["/api/cloudsearch/pc"] == null)
+            {
+                return content;
+            }
             foreach (JObject song in root["/api/cloudsearch/pc"]["result"]["songs"])
             {
                 int maxBR = 0;
